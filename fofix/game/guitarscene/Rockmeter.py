@@ -334,7 +334,7 @@ class FontLayer(Layer):
         text = eval(self.textexpr)
 
         if self.useComma:
-            text = locale.format("%d", text, grouping=True)
+            text = locale.format_string("%d", text, grouping=True)
         else:
             text = str(text)
 

@@ -1020,7 +1020,7 @@ class Instrument(object):
                 y += 1
 
             if self.noteSpin:
-                texCoord = self.animatedNoteTexCoord[self.noteSpinFrameIndex][fret]
+                texCoord = self.animatedNoteTexCoord[int(self.noteSpinFrameIndex)][fret]
                 if isTappable:
                     if spNote:
                         noteImage = self.noteAnimatedPowerHOPO
