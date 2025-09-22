@@ -3379,6 +3379,7 @@ def updateSongDatabase(engine):
             _('Caching song data...'), folder.libraryName, (_('(folder %d of %d; %d%% of this folder)') % (i + 1, len(folders), (p * 100))))))
     updatePhase(_('Pruning leftover entries...'))
     prunecount = _songDB.execute('DELETE FROM `songinfo` WHERE `seen` = 0').rowcount
+    _songDB.commit()
     if prunecount != 0:
         _songDB.execute('VACUUM')
         log.debug('Pruned %d cache entries.' % prunecount)
