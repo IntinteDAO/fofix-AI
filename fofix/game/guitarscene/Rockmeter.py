@@ -24,7 +24,8 @@
 from __future__ import with_statement
 import __future__
 
-import imp
+import importlib.util
+import importlib.machinery
 import locale
 import logging
 import math
@@ -961,8 +962,13 @@ class Rockmeter(ConfigGetMixin):
 
         try:
             themepath = os.path.join(Version.dataPath(), "themes", self.themename)
-            fp, pathname, description = imp.find_module("CustomRMLayers", [themepath])
-            self.customRMLayers = imp.load_module("CustomRMLayers", fp, pathname, description)
+            finder = importlib.machinery.PathFinder()
+            spec = finder.find_spec("CustomRMLayers", [themepath])
+            if spec:
+                self.customRMLayers = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(self.customRMLayers)
+            else:
+                raise ImportError()
         except ImportError:
             self.customRMLayers = None
             log.info("Custom Rockmeter layers are not available")

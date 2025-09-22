@@ -37,8 +37,7 @@ from fofix.core.Image import drawImage
 from fofix.core.Language import _
 from fofix.core.Config import MyConfigParser
 from fofix.core.Shader import shaders
-from fofix.core.videolayer import VideoLayer
-from fofix.core.videolayer import VideoPlayerError
+
 from fofix.core.constants import *
 from fofix.game.guitarscene import Rockmeter
 
@@ -356,40 +355,7 @@ class Stage(object):
                 else:
                     self.backgroundLayers.append(layer)
 
-    def loadVideo(self, libraryName, songName):
-        vidSource = None
 
-        if self.songStage == 1:
-            songBackgroundVideoPath = os.path.join(libraryName, songName, "background.ogv")
-            if os.path.isfile(songBackgroundVideoPath):
-                vidSource = songBackgroundVideoPath
-                loop = False
-            else:
-                log.warning("Video not found: %s" % songBackgroundVideoPath)
-
-        if vidSource is None:
-            vidSource = os.path.join(self.pathfull, "default.ogv")
-            loop = True
-
-        if not os.path.isfile(vidSource):
-            log.warning("Video not found: %s" % vidSource)
-            log.warning("Falling back to default stage mode.")
-            self.mode = 1 # Fallback
-            return
-
-        try: # Catches invalid video files or unsupported formats
-            log.debug("Attempting to load video: %s" % vidSource)
-            self.vidPlayer = VideoLayer(self.engine, vidSource,
-                                        mute = True, loop = loop)
-            self.engine.view.pushLayer(self.vidPlayer)
-        except (IOError, VideoPlayerError):
-            self.mode = 1
-            log.error("Failed to load song video (falling back to default stage mode):")
-
-    def restartVideo(self):
-        if not self.mode == 3:
-            return
-        self.vidPlayer.restart()
 
     def load(self, libraryName, songName, practiceMode = False):
         if self.scene.coOpType:
@@ -445,7 +411,7 @@ class Stage(object):
         #MFH - now, after the above logic, we can run the normal stage mode logic
         #      only worrying about checking for Blank, song-specific and
         #      practice stage modes
-        if self.mode != 2 and self.mode != 3 and self.songStage == 0 and not practiceMode: #still need to load stage(s)
+        if self.songStage == 0 and not practiceMode: #still need to load stage(s)
             #myfingershurt: assign this first
             if self.mode == 1:   #just use Default.png
                 if not self.engine.loadImgDrawing(self, "background", os.path.join(self.path, "default")):
@@ -606,14 +572,12 @@ class Stage(object):
             self.triggerBeat(pos, beat)
 
     def renderLayers(self, layers, visibility):
-        if self.mode != 3:
             with self.engine.view.orthogonalProjection(normalize = True):
                 for layer in layers:
                     layer.render(visibility)
 
     def render(self, visibility):
-        if self.mode != 3:
-            self.renderBackground()
+
         self.renderLayers(self.backgroundLayers, visibility)
         if shaders.enable("stage"):
             height = 0.0

@@ -1246,9 +1246,8 @@ class PartDiffChooser(MainDialog):
                 for j, d in enumerate(self.info.partDifficulties[self.players[i].part.id]):
                     if d == self.players[i].difficulty:
                         self.selected[i] = j
-                else:
-                    self.selected[i] = 0
                 self.mode[i] += 1
+                self.selected[i] = 0
             elif self.mode[i] == 1:
                 self.players[i].difficulty = self.info.partDifficulties[self.players[i].part.id][self.selected[i]]
                 if i not in self.readyPlayers:

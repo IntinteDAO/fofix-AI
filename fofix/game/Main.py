@@ -38,8 +38,7 @@ import pygame
 from fofix.core import Version
 from fofix.core import VFS
 
-from fofix.core.videolayer import VideoLayer
-from fofix.core.videolayer import VideoPlayerError
+
 from fofix.core.GameEngine import GameEngine
 from fofix.game.MainMenu import MainMenu
 from fofix.core import Config
@@ -73,7 +72,7 @@ class Main(object):
 
         self.engine = GameEngine(self.config)
 
-        self.videoLayer = False
+
         self.restartRequested = False
 
     @staticmethod
@@ -104,27 +103,7 @@ class Main(object):
         self.restartRequested = True
 
     def run(self):
-        # Perhaps this could be implemented in a better way...
-        # Play the intro video if it is present, we have the capability
-        themename = Config.get("coffee", "themename")
-        vidSource = os.path.join(Version.dataPath(), 'themes', themename, 'menu', 'intro.ogv')
-        if os.path.isfile(vidSource):
-            try:
-                vidPlayer = VideoLayer(self.engine, vidSource, cancellable=True)
-            except (IOError, VideoPlayerError):
-                log.error("Error loading intro video:")
-            else:
-                vidPlayer.play()
-                self.engine.view.pushLayer(vidPlayer)
-                self.videoLayer = True
-                self.engine.ticksAtStart = pygame.time.get_ticks()
-                while not vidPlayer.finished:
-                    self.engine.run()
-                self.engine.view.popLayer(vidPlayer)
-                self.engine.view.pushLayer(MainMenu(self.engine))
-
-        if not self.videoLayer:
-            self.engine.setStartupLayer(MainMenu(self.engine))
+        self.engine.setStartupLayer(MainMenu(self.engine))
 
         # Run the main game loop.
         try:

@@ -30,7 +30,8 @@
 #####################################################################
 
 import gc
-import imp
+import importlib.util
+import importlib.machinery
 import logging
 import os
 import sys
@@ -354,18 +355,18 @@ class GameEngine(object):
 
         self.theme = None
         try:
-            # Look for "CustomTheme.py" inside theme dir
-            fp, pathname, description = imp.find_module("CustomTheme", [themepath])
-            try:
-                # Found it! Load it.
-                theme = imp.load_module("CustomTheme", fp, pathname, description)
-                self.theme = theme.CustomTheme(themepath, themename)
-                log.info('Theme activated using custom class "%s"' % pathname)
-            except ImportError:
-                # Unable to load module; log it, but continue with default Theme.
-                log.error('Failed to load CustomTheme.py from "%s"' % pathname)
-            finally:
-                fp.close()
+            finder = importlib.machinery.PathFinder()
+            spec = finder.find_spec("CustomTheme", [themepath])
+            if spec:
+                try:
+                    # Found it! Load it.
+                    theme = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(theme)
+                    self.theme = theme.CustomTheme(themepath, themename)
+                    log.info('Theme activated using custom class "%s"' % spec.origin)
+                except ImportError:
+                    # Unable to load module; log it, but continue with default Theme.
+                    log.error('Failed to load CustomTheme.py from "%s"' % spec.origin)
         except ImportError:
             # CustomTheme.py file is optional, but notify developer anyway.
             log.info("No CustomTheme.py found in theme")

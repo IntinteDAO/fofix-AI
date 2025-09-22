@@ -121,8 +121,10 @@ if __name__ == '__main__':
         # Unix: ~/.fofix/
         logfile = VFS.resolveWrite('/userdata/%s.log' % Version.PROGRAM_UNIXSTYLE_NAME)
 
-    log.configure(logfile)
+    log.configure(logfile, logging.DEBUG)
     logger = logging.getLogger(__name__)
+
+
 
     # Add the directory of DLL dependencies to the PATH if we're running
     # from source on Windows so we pick them up when those bits are imported.

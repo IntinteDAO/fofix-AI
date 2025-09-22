@@ -506,6 +506,8 @@ class SongInfo(object):
                     continue
                 info.difficulties[part.id].sort(key=lambda idiff: idiff.id)
                 self._partDifficulties[part.id] = info.difficulties[part.id]
+                if not self._partDifficulties.get(part.id):
+                    self._partDifficulties[part.id] = [difficulties[EXP_DIF]]
         except Exception:
             log.warning("Note file not parsed correctly. Selected part and/or difficulty may not be available.")
             self._parts = parts.values()
@@ -2006,10 +2008,17 @@ class Song(object):
         self._playing = True
 
     def pause(self):
-        self.engine.audio.pause()
+        for name, trackGroups in self.songTracks.items():
+            for track in trackGroups:
+                if track:
+                    track.pause()
 
     def unpause(self):
-        self.engine.audio.unpause()
+        for name, trackGroups in self.songTracks.items():
+            for track in trackGroups:
+                if track:
+                    track.unpause()
+
 
     def setInstrumentVolume(self, volume, part):
         # This function is called way to much during sustained notes.
@@ -3301,6 +3310,9 @@ def getAvailableSongsAndTitles(engine, library=DEFAULT_LIBRARY, includeTutorials
 def sort_songs_per_title(songs, titles):
     """ Group songs by (unlock) title and put titles before each song group """
     items = list()
+
+    if not titles:
+        return items
 
     # first title
     i = 0

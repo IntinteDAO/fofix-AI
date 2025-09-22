@@ -33,6 +33,8 @@
 
 from __future__ import with_statement
 
+import sys
+
 from math import degrees, atan
 import logging
 import os
@@ -58,6 +60,13 @@ from fofix.game.song import Note, TextEvent, PictureEvent, loadSong, Bars, Vocal
 
 
 log = logging.getLogger(__name__)
+
+# Add a dedicated console handler for this logger
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+log.addHandler(console_handler)
 
 
 # The plan with this is to move gamemodes to being subclasses of this
@@ -402,6 +411,7 @@ class BandPlayBaseScene(Scene):
             self.pausePos = self.songTime
             self.song.pause()
             self.pause = True
+            sys.stderr.write(f"PAUSE: self.pause set to {self.pause}, song.isPlaying()={self.song.isPlaying()}\n")
             for instrument in self.instruments:
                 instrument.paused = True
                 if instrument.isVocal:
@@ -429,18 +439,15 @@ class BandPlayBaseScene(Scene):
         if self.resumeCountdownEnabled and not self.failed and not self.countdown:
             self.resumeCountdownSeconds = 3
             self.resumeCountdown = float(self.resumeCountdownSeconds) * self.songBPS
-            self.pause = False
+            self.pause = False # This is set to False here, but song is still paused
+            self.songEnded = False
         else:
             if self.song and self.song.readyToGo:
-                if not self.failed:  # don't resume the song if you have already failed
+                # Only unpause the song if we are NOT in the initial countdown phase
+                if not self.failed and self.countdown <= 0:
                     self.song.unpause()
                 self.pause = False
-                for instrument in self.instruments:
-                    instrument.paused = False
-                    if instrument.isVocal:
-                        instrument.startMic()
-                    else:
-                        instrument.neck.paused = False
+                self.songEnded = False
 
     def songLoaded(self, song):
         for i, player in enumerate(self.players):
@@ -792,6 +799,7 @@ class GuitarScene(BandPlayBaseScene):
         self.baseScore = 50
         self.baseSustainScore = .1
         self.rockFinished = False
+        self.songEnded = False
         self.spTimes = [[] for i in self.players]
         self.midiSP = False
         self.oBarScale = 0.0  # overdrive bar scale factor
@@ -2044,8 +2052,8 @@ class GuitarScene(BandPlayBaseScene):
         self.pausePos = 0
         self.failTimer = 0
         self.rockTimer = 0
-        self.youRock = False
         self.rockFinished = False
+        self.songEnded = False
         self.rock = [self.rockMax / 2 for i in self.players]
         self.minusRock = [0.0 for i in self.players]
         self.plusRock = [0.0 for i in self.players]
@@ -3229,6 +3237,7 @@ class GuitarScene(BandPlayBaseScene):
                 if not self.resumeCountdown:
                     self.song.unpause()
                     self.pause = False
+                    sys.stderr.write(f"RESUME COUNTDOWN END: song.unpause() called. self.pause={self.pause}, song.isPlaying()={self.song.isPlaying()}\n")
                     missedNotes = []
                     for instrument in self.instruments:
                         instrument.paused = False
@@ -3240,8 +3249,10 @@ class GuitarScene(BandPlayBaseScene):
                 self.mutedLastSecondYet = True
 
             # this detects the end of the song and displays "you rock"
-            if self.countdown <= 0 and not self.song.isPlaying() and not self.done:
+            # this detects the end of the song and displays "you rock"
+            if self.countdown <= 0 and not self.song.isPlaying() and not self.done and not self.pause and self.resumeCountdown <= 0 and not self.songEnded:
                 # must render fail message in render function, set and check flag here
+                self.songEnded = True
                 self.youRock = True
 
             # This ends the song after 100 ticks of displaying "you rock" - if the use hasn't paused the game.
@@ -3638,6 +3649,7 @@ class GuitarScene(BandPlayBaseScene):
 
     def goToResults(self):
         self.ending = True
+        self.songEnded = True
         if self.song:
             self.song.stop()
             self.done = True

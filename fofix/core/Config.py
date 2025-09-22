@@ -27,7 +27,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from collections import MutableMapping, namedtuple
+from collections.abc import MutableMapping
+from collections import namedtuple
 import logging
 import os
 import sys
@@ -90,7 +91,7 @@ class MyConfigParser(RawConfigParser):
                                 if line.strip()[0:2] != '//']
                 config_data = '\n'.join(config_lines)
                 str_fp = StringIO(config_data)
-                self.readfp(str_fp, filename)
+                self.read_file(str_fp, filename)
             except IOError:
                 continue
             read_ok.append(filename)

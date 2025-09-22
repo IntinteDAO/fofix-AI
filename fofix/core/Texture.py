@@ -205,5 +205,5 @@ class Texture:
         """Bind this texture to self.glTarget in the current OpenGL context"""
         if not glTarget:
             glTarget = self.glTarget
-        glBindTexture(glTarget, self.texture)
+        glBindTexture(glTarget, int(self.texture))
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, self.texEnv)

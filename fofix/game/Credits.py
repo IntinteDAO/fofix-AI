@@ -37,8 +37,7 @@ from fofix.core import Version
 from fofix.core.Image import drawImage
 from fofix.core.Input import KeyListener
 from fofix.core.Language import _
-from fofix.core.videolayer import VideoLayer
-from fofix.core.videolayer import VideoPlayerError
+
 from fofix.core.View import Layer
 from fofix.core.constants import *
 
@@ -170,23 +169,7 @@ class Credits(Layer, KeyListener):
         self.bank['italian'] = [_("Italian")]
         self.bank['spanish'] = [_("Spanish")]
 
-        self.videoLayer = False
-        self.background = None
-
-        vidSource = os.path.join(Version.dataPath(), 'themes', self.themename,
-                                 'menu', 'credits.ogv')
-        if os.path.isfile(vidSource):
-            try:
-                self.vidPlayer = VideoLayer(self.engine, vidSource, mute=True, loop=True)
-            except (IOError, VideoPlayerError):
-                log.error('Error loading credits video:')
-            else:
-                self.vidPlayer.play()
-                self.engine.view.pushLayer(self.vidPlayer)
-                self.videoLayer = True
-
-        if not self.videoLayer and \
-           not self.engine.loadImgDrawing(self, 'background', os.path.join('themes', self.themename, 'menu', 'credits.png')):
+        if not self.engine.loadImgDrawing(self, 'background', os.path.join('themes', self.themename, 'menu', 'credits.png')):
             self.background = None
 
         if not self.engine.loadImgDrawing(self, 'topLayer', os.path.join('themes', self.themename, 'menu', 'creditstop.png')):
@@ -319,8 +302,6 @@ class Credits(Layer, KeyListener):
         self.engine.view.pushLayer(self.engine.mainMenu)  # use already-existing MainMenu instance
 
     def quit(self):
-        if self.videoLayer:
-            self.engine.view.popLayer(self.vidPlayer)
         self.engine.view.popLayer(self)
 
     def keyPressed(self, key, isUnicode):

@@ -23,7 +23,8 @@
 # MA  02110-1301, USA.                                              #
 #####################################################################
 
-import imp
+import importlib.util
+import importlib.machinery
 import logging
 import math
 import os
@@ -791,16 +792,21 @@ class Theme(Task):
 
     def loadThemeModule(self, moduleName):
         try:
-            fp, pathname, description = imp.find_module(moduleName, [self.path])
-            module = imp.load_module(moduleName, fp, pathname, description)
-            if moduleName in ["CustomLobby", "ThemeLobby"]:
-                return module.CustomLobby(self)
-            elif moduleName in ["CustomSetlist", "Setlist"]:
-                return module.CustomSetlist(self)
-            elif moduleName in ["CustomParts", "ThemeParts"]:
-                return module.CustomParts(self)
+            finder = importlib.machinery.PathFinder()
+            spec = finder.find_spec(moduleName, [self.path])
+            if spec:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if moduleName in ["CustomLobby", "ThemeLobby"]:
+                    return module.CustomLobby(self)
+                elif moduleName in ["CustomSetlist", "Setlist"]:
+                    return module.CustomSetlist(self)
+                elif moduleName in ["CustomParts", "ThemeParts"]:
+                    return module.CustomParts(self)
+                else:
+                    return None
             else:
-                return None
+                raise ImportError()
         except ImportError:
             if moduleName in ["CustomLobby", "ThemeLobby"]:
                 return ThemeLobby(self)
