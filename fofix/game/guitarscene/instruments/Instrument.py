@@ -1,5 +1,5 @@
 #####################################################################
-# -*- coding: utf-8 -*-                                             #
+# -*- coding: utf-8 -*-
 #                                                                   #
 # Frets on Fire                                                     #
 # Copyright (C) 2009 Blazingamer                                    #
@@ -799,7 +799,7 @@ class Instrument(object):
 
                         x = (self.strings / 2 + .5 - event.number) * w
                     else:
-                        x = ((self.strings / 2 - event.number) * w)
+                        x = (self.strings / 2 - event.number - 0.5) * w
 
                     ff = 1 + 0.25
                     s = ff / 6
@@ -869,10 +869,10 @@ class Instrument(object):
                             continue
 
                         flameColor = self.flameColors[event.number]
-                        x = (self.strings / 2 + .5 - event.number) * w
+                        x = (self.strings / 2 + .5 - event.number) * w - 0.3
                     else:
                         flameColor = self.flameColors[event.number]
-                        x = (self.strings / 2 - event.number) * w
+                        x = (self.strings / 2 - event.number - 0.5) * w
 
                     if self.starPowerActive and self.powerActiveColorToggle:
                         flamecol = self.spColor
@@ -1109,6 +1109,7 @@ class Instrument(object):
 
         renderedNotes = reversed(self.getRequiredNotesForRender(song, pos))
         for time, event in renderedNotes:
+            sustain = False
 
             if isinstance(event, Tempo):
 
@@ -1253,7 +1254,7 @@ class Instrument(object):
                 sustain = False
 
                 gl.glPushMatrix()
-                gl.glTranslatef(x, 0, z)
+                gl.glTranslatef(x - 0.3, 0, z)
                 self.renderNote(length, sustain=sustain, color=color, tailOnly=tailOnly, isTappable=isTappable, fret=event.number, spNote=self.spNote, isOpen=isOpen)
                 gl.glPopMatrix()
             else:
@@ -1262,7 +1263,8 @@ class Instrument(object):
                 if event.length <= 120:
                     length = None
 
-                sustain = False
+                x = (self.strings / 2 - event.number - 0.5) * w
+
                 if event.length > (1.4 * (60000.0 / event.noteBpm) / 4):
                     sustain = True
 
@@ -1513,7 +1515,7 @@ class Instrument(object):
             c = self.glowColor[n]
             f = self.fretActivity[n]
             w = self.boardWidth / self.strings
-            x = (self.strings / 2 - n) * w
+            x = (self.strings / 2 - n - 0.5) * w
             if self.fretPress:
                 y = f / 6
             else:
@@ -1768,8 +1770,8 @@ class Instrument(object):
                         w = self.boardWidth / self.strings
                         self.freestyleLength = event.length
                         self.freestyleStart = time
-                        z = ((time - pos) / self.currentPeriod) / beatsPerUnit
-                        z2 = ((time + event.length - pos) / self.currentPeriod) / beatsPerUnit
+                        z = ((time - pos) / self.currentPeriod) / self.beatsPerUnit
+                        z2 = ((time + event.length - pos) / self.currentPeriod) / self.beatsPerUnit
 
                         if z > self.boardLength * .8:
                             f = (self.boardLength - z) / (self.boardLength * .2)
@@ -1959,7 +1961,7 @@ class Instrument(object):
                 sustain = True
 
             gl.glPushMatrix()
-            gl.glTranslatef(x, (1.0 - visibility) ** (event.number + 1), z)
+            gl.glTranslatef(x - 0.3, (1.0 - visibility) ** (event.number + 1), z)
 
             if big and num < self.bigMax:
                 num += 1

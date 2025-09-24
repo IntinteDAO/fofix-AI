@@ -111,7 +111,7 @@ class Guitar(Instrument):
             c = list(self.fretColors[keyNumb])
 
             y = v / 6
-            x = (self.strings / 2 - n) * w
+            x = (self.strings / 2 - n - 0.5) * w
 
             if self.twoDkeys or not self.keyMesh:
                 fretColor = (1,1,1,1)
