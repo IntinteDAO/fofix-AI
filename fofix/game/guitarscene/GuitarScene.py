@@ -3770,7 +3770,7 @@ class GuitarScene(BandPlayBaseScene):
             self.pauseGame()
             self.engine.view.pushLayer(self.menu)
             return True
-        elif key >= ord('a') and key <= ord('z'):
+        elif key is not None and key >= ord('a') and key <= ord('z'):
             # cheat codes
             n = len(self.enteredCode)
             for code, func in self.cheatCodes:
